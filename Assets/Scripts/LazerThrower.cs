@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
+
+
+//Class stockant les données d'un laser
 public class LaserData
 {
     public Vector2 origin { get; set; }
     public Vector2 direction { get; set; }
+    //Point de contact avec une surface rebndissable / teleportable
     public Vector2 hitPoint { get; set; } 
     public LaserData(Vector2 origin, Vector2 direction, Vector2 hitPoint = new Vector2())
     {
@@ -15,6 +19,7 @@ public class LaserData
         this.hitPoint = hitPoint;
     }
 
+    //Renvoie la distance du laser
     public float length {
         get {
                 if(this.hitPoint != null)
@@ -29,39 +34,37 @@ public class LaserData
             } 
         }
 
-    public bool CheckIfOriginInList(List<LaserData> list)
-    {
-        foreach (var item in list)
-        {
-            if(item.origin == this.origin)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
 }
 
 public class LazerThrower : MonoBehaviour
 {
+    [SerializeField]
+    private GameObject laserProj;
+
     [SerializeField, Range(1, 5)]
     private int bounceLimit = 3;
     private List<LaserData> laserToDisplay = new List<LaserData>();
     private LaserData nextLaser;
     private GameObject previousObjectHit;
+    bool displayCircle = false;
+    float currentBallDistance = 0;
+
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        DebugDisplayTrajectory();
+
+        if (displayCircle)
         {
 
-
-            laserToDisplay = new List<LaserData>();
-            nextLaser = new LaserData(transform.position, transform.up);
-            Shoot();
+            GameObject TempLaser = Instantiate(laserProj, transform.position, transform.rotation);
+            TempLaser.GetComponent<LaserController>().laserToDisplay = laserToDisplay; 
+            displayCircle = false;
         }
 
+    }
+
+    void DebugDisplayTrajectory()
+    {
         int i = 0;
         foreach (LaserData laser in laserToDisplay)
         {
@@ -70,19 +73,19 @@ public class LazerThrower : MonoBehaviour
             switch (i)
             {
                 case 0:
-                    color = Color.blue;
-                    break;
-                case 1:
                     color = Color.green;
                     break;
-                case 2:
-                    color = Color.red;
-                    break;
-                case 3:
+                case 1:
                     color = Color.cyan;
                     break;
-                case 4:
+                case 2:
+                    color = Color.blue;
+                    break;
+                case 3:
                     color = Color.magenta;
+                    break;
+                case 4:
+                    color = Color.red;
                     break;
                 default:
                     break;
@@ -90,7 +93,6 @@ public class LazerThrower : MonoBehaviour
             Debug.DrawRay(laser.origin, laser.direction.normalized * laser.length, color);
             i++;
         }
-
     }
 
     Vector2 CalculateBounceVector(Vector2 d, Vector2 n)
@@ -99,8 +101,11 @@ public class LazerThrower : MonoBehaviour
     }
 
 
-    void Shoot()
+    public void Shoot()
     {
+        laserToDisplay = new List<LaserData>();
+        nextLaser = new LaserData(transform.position, transform.up);
+        //Calcule la trajectoire du projectile
         for (int i = 0; i < bounceLimit; i++)
         {
             if (!nextLaser.Equals(new KeyValuePair<Vector2, Vector2>()))
@@ -110,15 +115,17 @@ public class LazerThrower : MonoBehaviour
             }
         }
         previousObjectHit = null;
+
+        //Active l'affichage du laser 
+
+        displayCircle = true;
+
     }
 
-     void SendRay(LaserData laser)
+    void SendRay(LaserData laser)
     {
 
         string txtDebug = "Sending Ray ! \n \n";
-
-
-
 
         RaycastHit2D[] hits = Physics2D.RaycastAll(laser.origin, laser.direction);
 
@@ -133,12 +140,11 @@ public class LazerThrower : MonoBehaviour
                 {
                     if (previousObjectHit != hit.collider.gameObject)
                     {
-                        if (!laser.CheckIfOriginInList(laserToDisplay))
-                        {
-                            txtDebug += "Adding to display \n\n";
+                        
+                        txtDebug += "Adding to display \n\n";
 
-                            laserToDisplay.Add(new LaserData(laser.origin, laser.direction, hit.point));
-                        }
+                        laserToDisplay.Add(new LaserData(laser.origin, laser.direction, hit.point));
+
 
                         if (previousObjectHit != null)
                         {
