@@ -12,14 +12,6 @@
                     "expectedControlType": "Vector2",
                     "processors": "NormalizeVector2",
                     "interactions": ""
-                },
-                {
-                    "name": "Shoot",
-                    "type": "Button",
-                    "id": "e7c07c81-8a00-4d09-8491-ab5b96e7323f",
-                    "expectedControlType": "Button",
-                    "processors": "NormalizeVector2",
-                    "interactions": ""
                 }
             ],
             "bindings": [
@@ -152,17 +144,6 @@
                     "processors": "",
                     "groups": "Joystick",
                     "action": "Move",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "a6f218bc-bd6c-4702-ab54-3588a0555689",
-                    "path": "<Gamepad>/buttonSouth",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "Gamepad",
-                    "action": "Shoot",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

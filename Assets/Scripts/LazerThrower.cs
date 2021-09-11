@@ -11,22 +11,21 @@ public class LaserData
     public Vector2 origin { get; set; }
     public Vector2 direction { get; set; }
     //Point de contact avec une surface rebndissable / teleportable
-    public Vector2 hitPoint { get; set; } 
-    public LaserData(Vector2 origin, Vector2 direction, Vector2 hitPoint = new Vector2())
+    public RaycastHit2D hit { get; set; } 
+    public LaserData(Vector2 origin, Vector2 direction, RaycastHit2D hit = new RaycastHit2D())
     {
         this.origin = origin;
         this.direction = direction;
-        this.hitPoint = hitPoint;
+        this.hit = hit;
     }
 
     //Renvoie la distance du laser
     public float length {
         get {
-                if(this.hitPoint != null)
+                if(hit.collider)
                 {
-                    return Mathf.Sqrt(Mathf.Pow(origin.x - hitPoint.x, 2) + Mathf.Pow(origin.y - hitPoint.y, 2));
+                    return Mathf.Sqrt(Mathf.Pow(origin.x - hit.point.x, 2) + Mathf.Pow(origin.y - hit.point.y, 2));
                 }
-
                 else
                 {
                     return 0;
@@ -45,9 +44,17 @@ public class LazerThrower : MonoBehaviour
     private int bounceLimit = 3;
     private List<LaserData> laserToDisplay = new List<LaserData>();
     private LaserData nextLaser;
-    private GameObject previousObjectHit;
+    private RaycastHit2D previousHit;
     bool displayCircle = false;
-    float currentBallDistance = 0;
+    [HideInInspector]
+    public Vector2 laserAngle;
+    [HideInInspector]
+    public PlayerController playerController;
+
+    private void Start()
+    {
+        laserAngle = transform.up;
+    }
 
     private void Update()
     {
@@ -55,9 +62,9 @@ public class LazerThrower : MonoBehaviour
 
         if (displayCircle)
         {
-
             GameObject TempLaser = Instantiate(laserProj, transform.position, transform.rotation);
-            TempLaser.GetComponent<LaserController>().laserToDisplay = laserToDisplay; 
+            TempLaser.GetComponent<LaserController>().playerController = playerController;
+            TempLaser.GetComponent<LaserController>().laserToDisplay = laserToDisplay;
             displayCircle = false;
         }
 
@@ -104,7 +111,7 @@ public class LazerThrower : MonoBehaviour
     public void Shoot()
     {
         laserToDisplay = new List<LaserData>();
-        nextLaser = new LaserData(transform.position, transform.up);
+        nextLaser = new LaserData(transform.position, laserAngle);
         //Calcule la trajectoire du projectile
         for (int i = 0; i < bounceLimit; i++)
         {
@@ -114,7 +121,7 @@ public class LazerThrower : MonoBehaviour
                 SendRay(nextLaser);
             }
         }
-        previousObjectHit = null;
+        previousHit = new RaycastHit2D();
 
         //Active l'affichage du laser 
 
@@ -138,17 +145,17 @@ public class LazerThrower : MonoBehaviour
                 txtDebug += "Bounceable = " + hit.collider.CompareTag("Bounceable") + "\n";
                 if (hit.collider.CompareTag("Bounceable"))
                 {
-                    if (previousObjectHit != hit.collider.gameObject)
+                    if (previousHit.point != hit.point)
                     {
                         
                         txtDebug += "Adding to display \n\n";
 
-                        laserToDisplay.Add(new LaserData(laser.origin, laser.direction, hit.point));
+                        laserToDisplay.Add(new LaserData(laser.origin, laser.direction, hit));
 
 
-                        if (previousObjectHit != null)
+                        if (previousHit.collider != null)
                         {
-                            txtDebug += "Previous object : " + previousObjectHit.name + "\n";
+                            txtDebug += "Previous object : " + previousHit.collider.name + "\n";
                         }
                         else
                         {
@@ -165,8 +172,8 @@ public class LazerThrower : MonoBehaviour
 
 
                         txtDebug += "Updating previous hit with : " + hit.collider.gameObject.name +"\n";
-                        previousObjectHit = hit.collider.gameObject;
-                        nextLaser = new LaserData(origin, bounce, hit.point);
+                        previousHit = hit;
+                        nextLaser = new LaserData(origin, bounce, hit);
                         
 
                         txtDebug += "Exiting Ray... \n\n";

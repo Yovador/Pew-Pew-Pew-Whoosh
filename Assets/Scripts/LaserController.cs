@@ -6,9 +6,8 @@ public class LaserController : MonoBehaviour
 {
     public List<LaserData> laserToDisplay;
     private float currentBallDistance = 0;
-    [SerializeField, Range(0, 10)]
-    private float laserSpeed = 1;
-
+    public PlayerController playerController;
+    private RaycastHit2D hitPoint;
     private void Update()
     {
         //Temp, c'est une boule pas un laser
@@ -17,12 +16,13 @@ public class LaserController : MonoBehaviour
         {
             if (currentBallDistance < laserToDisplay[0].length)
             {
-                transform.position = Vector2.Lerp(laserToDisplay[0].origin, laserToDisplay[0].hitPoint, (currentBallDistance / laserToDisplay[0].length));
-                currentBallDistance += laserToDisplay[0].length / (laserSpeed * (1.0f / Time.deltaTime));
+                transform.position = Vector2.Lerp(laserToDisplay[0].origin, laserToDisplay[0].hit.point, (currentBallDistance / laserToDisplay[0].length));
+                currentBallDistance += laserToDisplay[0].length / (AudioEngine.timeBetweenTwoBeat * (1.0f / Time.deltaTime));
             }
             else
             {
                 currentBallDistance = 0;
+                hitPoint = laserToDisplay[0].hit;
                 laserToDisplay.RemoveAt(0);
             }
         }
@@ -37,6 +37,7 @@ public class LaserController : MonoBehaviour
 
     private void DestroySequence()
     {
+        playerController.Teleport(hitPoint);
         Destroy(gameObject);
     }
 }
