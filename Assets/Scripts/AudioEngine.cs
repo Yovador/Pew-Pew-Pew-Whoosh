@@ -17,7 +17,7 @@ public class AudioEngine : MonoBehaviour
     private int signature = 4;
     private int currentMesure = 0;
 
-    //public UnityEvent weakTempoEvent;
+    public UnityEvent weakTempoEvent;
     public UnityEvent strongTempoEvent;
 
     public static float timeBetweenTwoBeat;
@@ -39,24 +39,26 @@ public class AudioEngine : MonoBehaviour
         }
         nextBPMTimeCode = 0;
         timeBetweenTwoBeat = 60f / bpm;
+
+
+    }
+
+    private void Start()
+    {
         musicStream.Play();
         soundStream.Play();
-
     }
 
     private void Update()
     {
 
-        //Debug.Log("time : " + musicStream.time + " / " + nextBPMTimeCode);
         if (musicStream.time > nextBPMTimeCode)
         {
-
-            //Debug.Log(currentMesure + " / " + bpm + " / " + currentBPMcount);
 
             nextBPMTimeCode += timeBetweenTwoBeat;
 
 
-            //weakTempoEvent.Invoke();
+            weakTempoEvent.Invoke();
 
             if (currentBPMcount % signature == 0)
                 {

@@ -14,13 +14,20 @@ public class PlayerController : MonoBehaviour
     private float aimDistance = 1f;
     [SerializeField, Range(10, 180)]
     private float aimAngle = 160;
+    private int currentBeat;
+    private int beatToDie;
+
+    public void OnPlayerJoined()
+    {
+        Debug.Log("A Player has joined");
+    }
 
     // Start is called before the first frame update
     void Start()
     {
         lazerThrower = GetComponentInChildren<LazerThrower>();
         lazerThrower.playerController = this;
-        aim = GameObject.Find("Aim");
+        aim = transform.Find("Aim").gameObject;
         aimVector = transform.up;
         UpdateAim();
     }
@@ -51,6 +58,23 @@ public class PlayerController : MonoBehaviour
         //Debug.Log("Moving + " + aimVector);
     }
 
+    public void Shoot()
+    {
+        lazerThrower.Shoot();
+        currentBeat = 0;
+    }
+
+    public void ActivateDeath()
+    {
+        if(currentBeat == beatToDie)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            currentBeat++;
+        }
+    }
 
     private void UpdateAim ()
     {
@@ -67,5 +91,12 @@ public class PlayerController : MonoBehaviour
         aimVector = transform.up;
         UpdateAim();
         lazerThrower.laserAngle = aimVector;
+    }
+
+    public void Death(int beatToDieOn)
+    {
+        beatToDie = beatToDieOn;
+        GameManager.instance.GameOver();
+
     }
 }

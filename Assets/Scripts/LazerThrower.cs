@@ -50,6 +50,7 @@ public class LazerThrower : MonoBehaviour
     public Vector2 laserAngle;
     [HideInInspector]
     public PlayerController playerController;
+    private int currentBounce = 0;
 
     private void Start()
     {
@@ -113,10 +114,12 @@ public class LazerThrower : MonoBehaviour
         laserToDisplay = new List<LaserData>();
         nextLaser = new LaserData(transform.position, laserAngle);
         //Calcule la trajectoire du projectile
+        currentBounce = 0;
         for (int i = 0; i < bounceLimit; i++)
         {
             if (!nextLaser.Equals(new KeyValuePair<Vector2, Vector2>()))
             {
+                currentBounce = i + 1;
                 Debug.Log("Shooting ray number : " + i + " / " + nextLaser.origin + " / " + nextLaser.direction);
                 SendRay(nextLaser);
             }
@@ -187,9 +190,14 @@ public class LazerThrower : MonoBehaviour
 
                     }
                 }
+
                 else
                 { 
                     nextLaser = null;
+                }
+
+                if (hit.collider.CompareTag("Player") && hit.collider.gameObject != transform.parent.gameObject){
+                    hit.collider.gameObject.GetComponent<PlayerController>().Death(currentBounce);
                 }
             }
         }

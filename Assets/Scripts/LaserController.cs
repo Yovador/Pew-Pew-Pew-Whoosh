@@ -6,6 +6,7 @@ public class LaserController : MonoBehaviour
 {
     public List<LaserData> laserToDisplay;
     private float currentBallDistance = 0;
+    [HideInInspector]
     public PlayerController playerController;
     private RaycastHit2D hitPoint;
     private void Update()
