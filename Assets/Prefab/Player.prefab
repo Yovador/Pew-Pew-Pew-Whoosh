@@ -211,7 +211,7 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: ee782597-0791-47dd-b5fc-dd77ba1d4424
     m_ActionName: Player/Move
-  m_NeverAutoSwitchControlSchemes: 0
+  m_NeverAutoSwitchControlSchemes: 1
   m_DefaultControlScheme: Gamepad
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1

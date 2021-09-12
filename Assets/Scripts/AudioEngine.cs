@@ -14,7 +14,7 @@ public class AudioEngine : MonoBehaviour
     [SerializeField]
     private int bpm = 70;
     [SerializeField]
-    private int signature = 4;
+    public int signature = 4;
     private int currentMesure = 0;
 
     public UnityEvent weakTempoEvent;
@@ -22,7 +22,7 @@ public class AudioEngine : MonoBehaviour
 
     public static float timeBetweenTwoBeat;
 
-    int currentBPMcount = 0;
+    public int currentBPMcount = 0;
     float nextBPMTimeCode ;
 
     void Awake()

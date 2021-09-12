@@ -12,11 +12,16 @@ public class LaserData
     public Vector2 direction { get; set; }
     //Point de contact avec une surface rebndissable / teleportable
     public RaycastHit2D hit { get; set; } 
-    public LaserData(Vector2 origin, Vector2 direction, RaycastHit2D hit = new RaycastHit2D())
+    
+    public int beat { get; set; }
+
+    //Constructor
+    public LaserData(Vector2 origin, Vector2 direction, int beat,  RaycastHit2D hit = new RaycastHit2D())
     {
         this.origin = origin;
         this.direction = direction;
         this.hit = hit;
+        this.beat = beat;
     }
 
     //Renvoie la distance du laser
@@ -50,7 +55,6 @@ public class LazerThrower : MonoBehaviour
     public Vector2 laserAngle;
     [HideInInspector]
     public PlayerController playerController;
-    private int currentBounce = 0;
 
     private void Start()
     {
@@ -64,8 +68,9 @@ public class LazerThrower : MonoBehaviour
         if (displayCircle)
         {
             GameObject TempLaser = Instantiate(laserProj, transform.position, transform.rotation);
-            TempLaser.GetComponent<LaserController>().playerController = playerController;
-            TempLaser.GetComponent<LaserController>().laserToDisplay = laserToDisplay;
+            LaserController laserController = TempLaser.GetComponent<LaserController>();
+            laserController.playerController = playerController;
+            laserController.laserToDisplay = laserToDisplay;
             displayCircle = false;
         }
 
@@ -76,7 +81,6 @@ public class LazerThrower : MonoBehaviour
         int i = 0;
         foreach (LaserData laser in laserToDisplay)
         {
-            Debug.Log("Displaying : " + laser.origin + " / " + laser.direction + " / " + laser.length);
             Color color = Color.clear;
             switch (i)
             {
@@ -99,6 +103,7 @@ public class LazerThrower : MonoBehaviour
                     break;
             }
             Debug.DrawRay(laser.origin, laser.direction.normalized * laser.length, color);
+            Debug.DrawRay(laser.hit.point, Vector2.up * 0.5f, Color.grey);
             i++;
         }
     }
@@ -112,27 +117,47 @@ public class LazerThrower : MonoBehaviour
     public void Shoot()
     {
         laserToDisplay = new List<LaserData>();
-        nextLaser = new LaserData(transform.position, laserAngle);
+        nextLaser = new LaserData(transform.position, laserAngle, 0);
         //Calcule la trajectoire du projectile
-        currentBounce = 0;
         for (int i = 0; i < bounceLimit; i++)
         {
             if (!nextLaser.Equals(new KeyValuePair<Vector2, Vector2>()))
             {
-                currentBounce = i + 1;
                 Debug.Log("Shooting ray number : " + i + " / " + nextLaser.origin + " / " + nextLaser.direction);
-                SendRay(nextLaser);
+                SendRay(nextLaser, i);
             }
         }
         previousHit = new RaycastHit2D();
 
-        //Active l'affichage du laser 
+        foreach (var laser in laserToDisplay)
+        {
+            RaycastHit2D[] deathHits = Physics2D.CircleCastAll(laser.hit.point, 0.5f, Vector2.zero);
+            foreach (var deathHit in deathHits)
+            {
+                if (deathHit)
+                {
+                    Debug.Log("Hitting : " + deathHit.collider.name + " from " + laser.hit.centroid + " at " + laser.hit.point);
+                    if (deathHit.collider.CompareTag("Player"))
+                    {
+                        Debug.Log(transform.parent.gameObject + " is hitting player " + deathHit.collider.gameObject.name);
+                        if (deathHit.collider.gameObject != transform.parent.gameObject)
+                        {
 
+                            deathHit.collider.gameObject.GetComponent<PlayerController>().Death(nextLaser);
+
+                        }
+                    }
+                }
+            }
+        }
+
+        //Active l'affichage du laser 
         displayCircle = true;
+
 
     }
 
-    void SendRay(LaserData laser)
+    void SendRay(LaserData laser, int beat)
     {
 
         string txtDebug = "Sending Ray ! \n \n";
@@ -153,7 +178,7 @@ public class LazerThrower : MonoBehaviour
                         
                         txtDebug += "Adding to display \n\n";
 
-                        laserToDisplay.Add(new LaserData(laser.origin, laser.direction, hit));
+                        laserToDisplay.Add(new LaserData(laser.origin, laser.direction, beat ,hit));
 
 
                         if (previousHit.collider != null)
@@ -176,10 +201,13 @@ public class LazerThrower : MonoBehaviour
 
                         txtDebug += "Updating previous hit with : " + hit.collider.gameObject.name +"\n";
                         previousHit = hit;
-                        nextLaser = new LaserData(origin, bounce, hit);
+                        nextLaser = new LaserData(origin, bounce, beat, hit);
                         
 
                         txtDebug += "Exiting Ray... \n\n";
+
+
+
 
                         Debug.Log(txtDebug);
                         break;
@@ -191,13 +219,10 @@ public class LazerThrower : MonoBehaviour
                     }
                 }
 
+
                 else
                 { 
                     nextLaser = null;
-                }
-
-                if (hit.collider.CompareTag("Player") && hit.collider.gameObject != transform.parent.gameObject){
-                    hit.collider.gameObject.GetComponent<PlayerController>().Death(currentBounce);
                 }
             }
         }

@@ -9,6 +9,8 @@ public class LaserController : MonoBehaviour
     [HideInInspector]
     public PlayerController playerController;
     private RaycastHit2D hitPoint;
+
+
     private void Update()
     {
         //Temp, c'est une boule pas un laser

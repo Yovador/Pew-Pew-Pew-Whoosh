@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+
 [SelectionBase]
 public class PlayerController : MonoBehaviour
 {
+    private PlayerInput playerInput;
     [HideInInspector]
     public LazerThrower lazerThrower;
     public Vector2 aimVector;
@@ -14,17 +16,13 @@ public class PlayerController : MonoBehaviour
     private float aimDistance = 1f;
     [SerializeField, Range(10, 180)]
     private float aimAngle = 160;
-    private int currentBeat;
-    private int beatToDie;
-
-    public void OnPlayerJoined()
-    {
-        Debug.Log("A Player has joined");
-    }
+    public int beatToDie = -1;
 
     // Start is called before the first frame update
     void Start()
     {
+        playerInput = GetComponent<PlayerInput>();
+        
         lazerThrower = GetComponentInChildren<LazerThrower>();
         lazerThrower.playerController = this;
         aim = transform.Find("Aim").gameObject;
@@ -36,6 +34,7 @@ public class PlayerController : MonoBehaviour
     {
         Debug.DrawRay(transform.position, aimVector * 2, Color.yellow);
     }
+
     public void OnMove(InputValue input)
     {
         Vector2 previousAimV = aimVector;
@@ -60,19 +59,17 @@ public class PlayerController : MonoBehaviour
 
     public void Shoot()
     {
-        lazerThrower.Shoot();
-        currentBeat = 0;
+        if (GameManager.instance.gameStarted)
+        {
+            lazerThrower.Shoot();
+        }
     }
 
-    public void ActivateDeath()
+    public void OnStartGame()
     {
-        if(currentBeat == beatToDie)
+        if (!GameManager.instance.gameStarted)
         {
-            Destroy(gameObject);
-        }
-        else
-        {
-            currentBeat++;
+            GameManager.instance.StartGame();
         }
     }
 
@@ -93,10 +90,11 @@ public class PlayerController : MonoBehaviour
         lazerThrower.laserAngle = aimVector;
     }
 
-    public void Death(int beatToDieOn)
+    public void Death(LaserData laser)
     {
-        beatToDie = beatToDieOn;
-        GameManager.instance.GameOver();
+        beatToDie = laser.beat;
 
     }
+
+
 }
