@@ -17,6 +17,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField, Range(10, 180)]
     private float aimAngle = 160;
     public int beatToDie = -1;
+    [SerializeField]
+    public int playerNumber = 1;
 
     // Start is called before the first frame update
     void Start()
